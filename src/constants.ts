@@ -9,7 +9,7 @@ export type Language = 'en' | 'ta';
 
 export const TRANSLATIONS = {
   en: {
-    title: 'Nithi Agri Token Manager',
+    title: 'Token Manager',
     customerAccess: 'Customer Access',
     adminAccess: 'Admin Access',
     fillDetails: 'Fill Details',
@@ -47,7 +47,7 @@ export const TRANSLATIONS = {
     searching: 'Searching...',
     voiceStart: 'Speak now...',
     voiceError: 'Voice recognition failed. Please type manually.',
-    removeVillage: 'Note: Village option removed as requested.',
+    removeVillage: '',
     previousBalance: 'Previous Balance',
     logOut: 'Log Out',
     lastOrder: 'Last Order',
@@ -61,7 +61,7 @@ export const TRANSLATIONS = {
     deleted: 'Deleted'
   },
   ta: {
-    title: 'நிதி அக்ரி டோக்கன் மேலாளர்',
+    title: 'டோக்கன் மேலாளர்',
     customerAccess: 'வாடிக்கையாளர் அணுகல்',
     adminAccess: 'நிர்வாகி அணுகல்',
     fillDetails: 'விவரங்களை நிரப்பவும்',
@@ -99,7 +99,7 @@ export const TRANSLATIONS = {
     searching: 'தேடுகிறது...',
     voiceStart: 'இப்போது பேசுங்கள்...',
     voiceError: 'குரல் அங்கீகாரம் தோல்வியடைந்தது. கைமுறையாக தட்டச்சு செய்யவும்.',
-    removeVillage: 'குறிப்பு: கோரிக்கையின்படி கிராம விருப்பம் நீக்கப்பட்டது.',
+    removeVillage: '',
     previousBalance: 'முந்தைய இருப்பு',
     logOut: 'வெளியேறு',
     lastOrder: 'கடைசி ஆர்டர்',

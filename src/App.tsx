@@ -159,7 +159,7 @@ export default function App() {
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h1 className="font-bold text-xl tracking-tight text-indigo-600">Nithi Agri</h1>
+            <h1 className="font-bold text-xl tracking-tight text-indigo-600">Flour Mill Kolathur</h1>
           </div>
           <div className="flex items-center gap-4">
             <button 
@@ -225,7 +225,6 @@ function LandingView({ setView, t, onAdminClick, isAdminAuthenticated }: { setVi
     >
       <div className="text-center space-y-4 mb-12">
         <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight">{t.title}</h2>
-        <p className="text-slate-600 max-w-lg mx-auto">{t.removeVillage}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
