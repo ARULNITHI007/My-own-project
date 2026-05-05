@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isAdmin() { 
+      return isSignedIn() && request.auth.token.email == 'arulnithi007001@gmail.com'; 
+    }
+    function isValidId(id) { return id is string && id.size() <= 128; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Token Record Validation
+    function isValidToken(data) {
+      return data.tokenNumber is number && data.tokenNumber >= 1 && data.tokenNumber <= 50
+          && data.customerName is string && data.customerName.size() > 0
+          && data.totalAmount is number && data.totalAmount >= 0
+          && data.previousAmount is number && data.previousAmount >= 0
+          && data.status in ['pending', 'completed']
+          && data.paymentStatus in ['unpaid', 'paid']
+          && (data.items is list || data.items == null)
+          && data.createdAt is timestamp;
+    }
+
+    match /tokens/{tokenId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if true; 
+    }
+  }
+}

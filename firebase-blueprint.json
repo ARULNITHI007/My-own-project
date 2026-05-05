@@ -1,0 +1,56 @@
+{
+  "entities": {
+    "TokenRecord": {
+      "title": "Token Record",
+      "description": "A record of an agricultural service token request.",
+      "type": "object",
+      "properties": {
+        "tokenNumber": {
+          "type": "integer",
+          "description": "The assigned token number (1-50)."
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Name of the customer."
+        },
+        "items": {
+          "type": "array",
+          "description": "List of products and their quantities."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "The total calculated amount for this token."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "completed"],
+          "description": "Processing status of the work."
+        },
+        "paymentStatus": {
+          "type": "string",
+          "enum": ["unpaid", "paid"],
+          "description": "Status of the payment."
+        },
+        "previousAmount": {
+          "type": "number",
+          "description": "Historical balance or previous amount."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["tokenNumber", "customerName", "items", "totalAmount", "status", "paymentStatus", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/tokens/{tokenId}": {
+      "schema": "TokenRecord",
+      "description": "Main collection of agricultural service tokens."
+    }
+  }
+}
