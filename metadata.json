@@ -1,5 +1,5 @@
 {
-  "name": "Nithi Agri Token Manager",
+  "name": "Token Manager",
   "description": "A bilingual (English/Tamil) tracking system for agricultural service tokens, managing products like Udaithal, Milagai, and livestock services with real-time status updates.",
   "requestFramePermissions": [
     "microphone"
