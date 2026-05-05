@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, FormEvent } from 'react';
 import { 
   Plus, 
   Search, 
@@ -62,31 +62,35 @@ export default function App() {
   const [lang, setLang] = useState<Language>('en');
   const [view, setView] = useState<'landing' | 'customer_form' | 'customer_tracking' | 'admin'>('landing');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [user, setUser] = useState<User | null>(null);
   const t = TRANSLATIONS[lang];
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
-      if (u?.email === 'arulnithi007001@gmail.com') {
-        setIsAdminAuthenticated(true);
-      }
     });
     return () => unsubscribe();
   }, []);
 
-  const handleAdminLogin = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      if (result.user.email === 'arulnithi007001@gmail.com') {
-        setIsAdminAuthenticated(true);
-        setView('admin');
-      } else {
-        alert('Access Denied: Only Admin can access this portal.');
-      }
-    } catch (error) {
-      console.error(error);
+  const handleAdminLogin = async (e: FormEvent) => {
+    e.preventDefault();
+    if (loginForm.username === 'Arulnithi' && loginForm.password === 'Arulnithi007001') {
+      setIsAdminAuthenticated(true);
+      setShowLoginModal(false);
+      setView('admin');
+      setLoginForm({ username: '', password: '' });
+    } else {
+      alert('Invalid Username or Password');
+    }
+  };
+
+  const onAdminClick = () => {
+    if (isAdminAuthenticated) {
+      setView('admin');
+    } else {
+      setShowLoginModal(true);
     }
   };
 
@@ -98,6 +102,56 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
+      {/* Admin Login Modal */}
+      <AnimatePresence>
+        {showLoginModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-2xl p-8 w-full max-w-sm shadow-2xl space-y-6"
+            >
+              <div className="flex justify-between items-center">
+                <h3 className="text-xl font-bold">Admin Login</h3>
+                <button onClick={() => setShowLoginModal(false)} className="p-2 hover:bg-slate-100 rounded-full">
+                  <X size={20} />
+                </button>
+              </div>
+              <form onSubmit={handleAdminLogin} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Username</label>
+                  <input 
+                    type="text"
+                    required
+                    value={loginForm.username}
+                    onChange={(e) => setLoginForm({ ...loginForm, username: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    placeholder="Enter username"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Password</label>
+                  <input 
+                    type="password"
+                    required
+                    value={loginForm.password}
+                    onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none"
+                    placeholder="Enter password"
+                  />
+                </div>
+                <button 
+                  type="submit"
+                  className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition-all"
+                >
+                  Login
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
       {/* Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -128,7 +182,7 @@ export default function App() {
       <main className="max-w-4xl mx-auto px-4 py-8">
         <AnimatePresence mode="wait">
           {view === 'landing' && (
-            <LandingView key="landing" setView={setView} t={t} onAdminLogin={handleAdminLogin} isAdminAuthenticated={isAdminAuthenticated} />
+            <LandingView key="landing" setView={setView} t={t} onAdminClick={onAdminClick} isAdminAuthenticated={isAdminAuthenticated} />
           )}
           {view === 'customer_form' && (
             <CustomerForm key="form" setView={setView} t={t} lang={lang} />
@@ -158,7 +212,7 @@ export default function App() {
   );
 }
 
-function LandingView({ setView, t, onAdminLogin, isAdminAuthenticated }: { setView: any, t: any, onAdminLogin: any, isAdminAuthenticated: boolean }) {
+function LandingView({ setView, t, onAdminClick, isAdminAuthenticated }: { setView: any, t: any, onAdminClick: any, isAdminAuthenticated: boolean, key?: string }) {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -197,8 +251,9 @@ function LandingView({ setView, t, onAdminLogin, isAdminAuthenticated }: { setVi
 
       <div className="flex justify-center mt-12">
         <button 
-          onClick={isAdminAuthenticated ? () => setView('admin') : onAdminLogin}
-          className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors py-2 px-4 rounded-lg bg-slate-100 font-medium"
+          type="button"
+          onClick={onAdminClick}
+          className="flex items-center gap-2 text-slate-500 hover:text-indigo-600 transition-colors py-2 px-4 rounded-lg bg-slate-100 font-medium focus:ring-2 focus:ring-indigo-500 focus:outline-none"
         >
           {t.adminAccess}
         </button>
@@ -207,7 +262,7 @@ function LandingView({ setView, t, onAdminLogin, isAdminAuthenticated }: { setVi
   );
 }
 
-function CustomerForm({ setView, t, lang }: { setView: any, t: any, lang: Language }) {
+function CustomerForm({ setView, t, lang }: { setView: any, t: any, lang: Language, key?: string }) {
   const [tokenNumber, setTokenNumber] = useState<number>(0);
   const [pendingTokens, setPendingTokens] = useState<number[]>([]);
   const [customerName, setCustomerName] = useState('');
@@ -465,7 +520,7 @@ function CustomerForm({ setView, t, lang }: { setView: any, t: any, lang: Langua
   );
 }
 
-function CustomerTracking({ setView, t, isAdminAuthenticated }: { setView: any, t: any, isAdminAuthenticated: boolean }) {
+function CustomerTracking({ setView, t, isAdminAuthenticated }: { setView: any, t: any, isAdminAuthenticated: boolean, key?: string }) {
   const [searchName, setSearchName] = useState(localStorage.getItem('lastCustomerName') || '');
   const [records, setRecords] = useState<TokenRecord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -665,7 +720,7 @@ function CustomerTracking({ setView, t, isAdminAuthenticated }: { setView: any, 
   );
 }
 
-function AdminPortal({ t }: { t: any }) {
+function AdminPortal({ t }: { t: any, key?: string }) {
   const [records, setRecords] = useState<TokenRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
