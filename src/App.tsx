@@ -4,6 +4,7 @@
  */
 
 import { useState, useEffect, useCallback, FormEvent } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   Plus, 
   Search, 
@@ -19,7 +20,9 @@ import {
   Check,
   X,
   CreditCard,
-  Edit3
+  Edit3,
+  Copy,
+  ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -269,6 +272,11 @@ function CustomerForm({ setView, t, lang }: { setView: any, t: any, lang: Langua
   const [isListening, setIsListening] = useState(false);
   const [selectedProducts, setSelectedProducts] = useState<Array<{key: keyof typeof PRICES, kg: number}>>([]);
   const [loading, setLoading] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState(0);
+
+  const UPI_ID = "arulmissindia007@okaxis";
+  const ADMIN_NAME = "Arulnithi";
 
   // Fetch busy tokens to ensure uniqueness
   useEffect(() => {
@@ -320,11 +328,7 @@ function CustomerForm({ setView, t, lang }: { setView: any, t: any, lang: Langua
     return selectedProducts.reduce((sum, p) => sum + (PRICES[p.key] * p.kg), 0);
   };
 
-  const handleSubmit = async () => {
-    if (!tokenNumber) return alert(t.selectToken);
-    if (!customerName.trim()) return alert(t.enterName);
-    if (selectedProducts.length === 0) return alert(t.selectProducts);
-
+  const handleFinalSubmit = async () => {
     setLoading(true);
     let previousAmount = 0;
     
@@ -362,8 +366,7 @@ function CustomerForm({ setView, t, lang }: { setView: any, t: any, lang: Langua
         total: PRICES[p.key] * p.kg
       }));
 
-      const itemTotal = calculateTotal();
-      const totalAmount = itemTotal + previousAmount;
+      const totalAmount = paymentAmount + previousAmount;
 
       const docRef = await addDoc(collection(db, 'tokens'), {
         tokenNumber,
@@ -388,13 +391,100 @@ function CustomerForm({ setView, t, lang }: { setView: any, t: any, lang: Langua
     }
   };
 
+  const handleSubmit = () => {
+    if (!tokenNumber) return alert(t.selectToken);
+    if (!customerName.trim()) return alert(t.enterName);
+    if (selectedProducts.length === 0) return alert(t.selectProducts);
+    
+    setPaymentAmount(calculateTotal());
+    setShowPayment(true);
+  };
+
+  const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(ADMIN_NAME)}&am=${paymentAmount}&cu=INR`;
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden"
-    >
+    <>
+      <AnimatePresence>
+        {showPayment && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-white rounded-3xl p-8 w-full max-w-md shadow-2xl space-y-6 text-center"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-xl font-bold">Complete Payment</h3>
+                <button onClick={() => setShowPayment(false)} className="p-2 hover:bg-slate-100 rounded-full">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-slate-50 p-6 rounded-2xl flex flex-col items-center gap-4">
+                  <div className="bg-white p-4 rounded-xl shadow-sm">
+                    <QRCodeSVG 
+                      value={upiUrl} 
+                      size={200}
+                      level="H"
+                      includeMargin={true}
+                    />
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm text-slate-500 font-medium tracking-wide uppercase">Amount to Pay</p>
+                    <div className="text-4xl font-black text-indigo-600">₹{paymentAmount}</div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <div className="text-left">
+                      <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">UPI ID</p>
+                      <p className="font-mono text-sm font-semibold text-slate-700">{UPI_ID}</p>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(UPI_ID);
+                        alert("UPI ID Copied!");
+                      }}
+                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                    >
+                      <Copy size={18} />
+                    </button>
+                  </div>
+
+                  <a 
+                    href={upiUrl}
+                    className="flex items-center justify-center gap-2 w-full py-4 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:bg-indigo-700 transition-all"
+                  >
+                    <ExternalLink size={20} />
+                    Open Payment App
+                  </a>
+                  
+                  <p className="text-[10px] text-slate-400">
+                    Note: Scan the QR code or use the button to complete payment. Your token will be generated immediately after clicking the button below.
+                  </p>
+                </div>
+
+                <button 
+                  onClick={handleFinalSubmit}
+                  disabled={loading}
+                  className="w-full py-4 border-2 border-indigo-600 text-indigo-600 rounded-xl font-bold hover:bg-indigo-50 transition-all disabled:opacity-50"
+                >
+                  {loading ? 'Processing...' : 'Confirm Registration & Finish'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <motion.div 
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden"
+      >
       <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-indigo-50/50">
         <button onClick={() => setView('landing')} className="p-2 hover:bg-white rounded-lg transition-colors">
           <ArrowLeft size={20} className="text-slate-600" />
@@ -517,6 +607,7 @@ function CustomerForm({ setView, t, lang }: { setView: any, t: any, lang: Langua
         </div>
       </div>
     </motion.div>
+    </>
   );
 }
 
@@ -586,7 +677,9 @@ function CustomerTracking({ setView, t, isAdminAuthenticated }: { setView: any, 
   };
 
   const handleOnlinePay = (record: TokenRecord) => {
-    const upiUrl = `upi://pay?pa=7868880773@upi&pn=NithiAgri&am=${record.totalAmount}&cu=INR`;
+    const UPI_ID = "arulmissindia007@okaxis";
+    const ADMIN_NAME = "Arulnithi";
+    const upiUrl = `upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(ADMIN_NAME)}&am=${record.totalAmount}&cu=INR`;
     window.location.href = upiUrl;
   };
 
